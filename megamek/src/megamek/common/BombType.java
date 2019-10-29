@@ -34,15 +34,17 @@ public class BombType extends AmmoType {
     public static final int B_THUNDER = 12;
     public static final int B_TORPEDO = 13;
     public static final int B_ALAMO   = 14;
-    public static final int B_NUM     = 15;
-//    public static final int B_FAE     = 16;  TODO - Implement Fuel Air Explosives
+	public static final int B_SFAE    = 15;  // TODO - Implement Fuel Air Explosives
+	public static final int B_LFAE    = 16;
+    public static final int B_NUM     = 17;
 
     public static final String[] bombNames = {"HE Bomb","Cluster Bomb","Laser-guided Bomb",
                                               "Rocket", "TAG", "AAA Missile", "AS Missile",
                                               "ASEW Missile", "Arrow IV Missile",
                                               "Arrow IV Homing Missile", "Inferno Bomb",
                                               "LAA Missile", "Thunder Bomb", "Torpedo Bomb",
-                                              "Alamo Missile"};
+											  "Alamo Missile", "Small Fuel-Air Bomb",
+											  "Large Fuel-Air Bomb"};
     
     public static final String[] bombInternalNames = {"HEBomb","ClusterBomb","LGBomb",
                                                       "RL 10 Ammo (Bomb)", "TAGBomb", "AAAMissile Ammo",
@@ -50,14 +52,14 @@ public class BombType extends AmmoType {
                                                       "ASEWMissile Ammo", "ArrowIVMissile Ammo",
                                                       "ArrowIVHomingMissile Ammo", "InfernoBomb",
                                                       "LAAMissile Ammo", "ThunderBomb", "TorpedoBomb",
-                                                      "AlamoMissile Ammo"};
+                                                      "AlamoMissile Ammo", "SmallFAEBomb", "LargeFAEBomb"};
 
     public static final String[] bombWeaponNames = {null, null, null, "BombRL", "BombTAG", "AAA Missile",
                                                     "AS Missile", "ASEWMissile", "BombArrowIV", "BombArrowIV",
-                                                    null,"LAAMissile",null,null,"AlamoMissile"};
+                                                    null,"LAAMissile",null,null,"AlamoMissile", null, null};
 
 
-    public static final int[] bombCosts = {1,1,1,1,1,5,6,6,5,5,1,2,1,1,10};
+    public static final int[] bombCosts = {1,1,1,1,1,5,6,6,5,5,1,2,1,1,10,1,2};
     private int bombType;
 
     public static String getBombName(int type) {
@@ -123,7 +125,9 @@ public class BombType extends AmmoType {
         case B_LG:
         case B_INFERNO:
         case B_THUNDER:
-        case B_TORPEDO:
+		case B_TORPEDO:
+		case B_SFAE:
+		case B_LFAE:
             return true;
         default:
             return false;
@@ -170,7 +174,9 @@ public class BombType extends AmmoType {
 //        EquipmentType.addType(BombType.createCLLAAMissileBomb());
         EquipmentType.addType(BombType.createThunderBomb());
         EquipmentType.addType(BombType.createTorpedoBomb());
-        EquipmentType.addType(BombType.createAlamoBomb());
+		EquipmentType.addType(BombType.createAlamoBomb());
+		EquipmentType.addType(BombType.createSmallFAEBomb());
+		EquipmentType.addType(BombType.createLargeFAEBomb());
     }
     
     public static BombType createBombByType(int bType)    {
@@ -204,7 +210,11 @@ public class BombType extends AmmoType {
             case B_TORPEDO:
                 return createTorpedoBomb();
             case B_ALAMO:
-                return createAlamoBomb();
+				return createAlamoBomb();
+			case B_SFAE:
+				return createSmallFAEBomb();
+			case B_LFAE:
+				return createLargeFAEBomb();
             default:
                 return null;
         }
@@ -639,6 +649,62 @@ public class BombType extends AmmoType {
 	        .setISAdvancement(2200).setPrototypeFactions(F_TA)
 	        .setAvailability(RATING_F, RATING_F, RATING_F, RATING_F)
 	        .setStaticTechLevel(SimpleTechLevel.EXPERIMENTAL);
+
+		return bomb;
+	}
+
+	private static BombType createSmallFAEBomb() {
+		BombType bomb = new BombType();
+
+		bomb.name = "Small Fuel-Air (FAE) Bomb";
+		bomb.shortName = "SmallFAEBomb";
+		bomb.setInternalName(BombType.getBombInternalName(BombType.B_SFAE));
+		bomb.addLookupName("Fuel-Air Bomb (Small)");
+		bomb.damagePerShot = 1;
+		bomb.rackSize = 20;
+		bomb.ammoType = AmmoType.T_BOMB;
+		bomb.bombType = BombType.B_SFAE;
+		bomb.shots = 1;
+		bomb.bv = 37;
+		bomb.cost = 18000;
+		bomb.flags.or(AmmoType.F_GROUND_BOMB).or(AmmoType.F_FAE);
+		bomb.rulesRefs = "165,IO";
+		bomb.techAdvancement.setTechBase(TechAdvancement.TECH_BASE_ALL)
+				.setIntroLevel(false)
+				.setUnofficial(false)
+				.setTechRating(RATING_C)
+				.setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+				.setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+				.setApproximate(false, false, false, false, false)
+				.setStaticTechLevel(SimpleTechLevel.ADVANCED);
+
+		return bomb;
+	}
+
+	private static BombType createLargeFAEBomb() {
+		BombType bomb = new BombType();
+
+		bomb.name = "Large Fuel-Air (FAE) Bomb";
+		bomb.shortName = "LargeFAEBomb";
+		bomb.setInternalName(BombType.getBombInternalName(BombType.B_LFAE));
+		bomb.addLookupName("Fuel-Air Bomb (Large)");
+		bomb.damagePerShot = 1;
+		bomb.rackSize = 30;
+		bomb.ammoType = AmmoType.T_BOMB;
+		bomb.bombType = BombType.B_SFAE;
+		bomb.shots = 1;
+		bomb.bv = 63;
+		bomb.cost = 35000;
+		bomb.flags.or(AmmoType.F_GROUND_BOMB).or(AmmoType.F_FAE);
+		bomb.rulesRefs = "165,IO";
+		bomb.techAdvancement.setTechBase(TechAdvancement.TECH_BASE_ALL)
+				.setIntroLevel(false)
+				.setUnofficial(false)
+				.setTechRating(RATING_C)
+				.setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+				.setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+				.setApproximate(false, false, false, false, false)
+				.setStaticTechLevel(SimpleTechLevel.ADVANCED);
 
 		return bomb;
 	}

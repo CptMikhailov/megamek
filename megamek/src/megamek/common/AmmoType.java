@@ -221,6 +221,10 @@ public class AmmoType extends EquipmentType {
     //Used by MHQ for loading ammo bins
     public static final BigInteger F_SCREEN = BigInteger.valueOf(1)
             .shiftLeft(18);
+    
+    // Used for fuel-air munitions
+    public static final BigInteger F_FAE = BigInteger.valueOf(1)
+            .shiftLeft(19);
 
     // ammo munitions, used for custom loadouts
     // N.B. we play bit-shifting games to allow "incendiary"
@@ -334,8 +338,11 @@ public class AmmoType extends EquipmentType {
     // More SRM+LRM Munitions types
     public static final long M_MINE_CLEARANCE = 1l << 61;
   
-  
     // Numbers 62-63 are used for Nuclear munitions, above 
+
+    // Thermobaric munitions
+    // IO pages 165-166
+    public static final long M_FUEL_AIR = 1l << 64;
       
     /*
      * public static final String[] MUNITION_NAMES = { "Standard", "Cluster",
@@ -2785,6 +2792,16 @@ public class AmmoType extends EquipmentType {
                     .setAvailability(RATING_F, RATING_F, RATING_F, RATING_F)
                     .setISAdvancement(2412, DATE_NONE, DATE_NONE, 2830, 3044)
                     .setStaticTechLevel(SimpleTechLevel.EXPERIMENTAL), "174, IO"));
+        
+        munitions.add(new MunitionMutator("Fuel-Air", 1, M_FUEL_AIR,
+                new TechAdvancement(TECH_BASE_IS)
+                    .setIntroLevel(false)
+                    .setUnofficial(false)
+                    .setTechRating(RATING_C)
+                    .setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+                    .setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+                    .setApproximate(false, false, false, false, false)
+                    .setStaticTechLevel(SimpleTechLevel.ADVANCED), "165, IO"));
 
         //TODO:
 /*      Fuel-Air Mutators (See IO 165),
@@ -2915,6 +2932,16 @@ public class AmmoType extends EquipmentType {
                 .setPrototypeFactions(F_CC)
                 .setProductionFactions(F_CC)
                 .setStaticTechLevel(SimpleTechLevel.ADVANCED),"357,TO"));        
+
+        munitions.add(new MunitionMutator("Fuel-Air", 1, M_FUEL_AIR,
+                new TechAdvancement(TECH_BASE_CLAN)
+                    .setIntroLevel(false)
+                    .setUnofficial(false)
+                    .setTechRating(RATING_C)
+                    .setAvailability(RATING_X, RATING_E, RATING_E, RATING_E)
+                    .setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+                    .setApproximate(false, false, false, false, false)
+                    .setStaticTechLevel(SimpleTechLevel.ADVANCED), "165, IO"));
 
      
         //TODO:
@@ -3061,6 +3088,16 @@ public class AmmoType extends EquipmentType {
                 .setISApproximate(false,false,false,false,false)
                 .setStaticTechLevel(SimpleTechLevel.ADVANCED),"355,TO"));
                      
+        munitions.add(new MunitionMutator("Fuel-Air", 1, M_FUEL_AIR,
+                new TechAdvancement(TECH_BASE_ALL)
+                    .setIntroLevel(false)
+                    .setUnofficial(false)
+                    .setTechRating(RATING_C)
+                    .setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+                    .setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+                    .setApproximate(false, false, false, false, false)
+                    .setStaticTechLevel(SimpleTechLevel.ADVANCED), "165, IO"));
+
         //TODO:
         //Fuel-Air Mutators (See IO 165)
 
@@ -3150,6 +3187,16 @@ public class AmmoType extends EquipmentType {
                 .setClanAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
                 .setClanApproximate(false,false,false,false,false),"355,TO"));
         
+        munitions.add(new MunitionMutator("Fuel-Air", 1, M_FUEL_AIR,
+                new TechAdvancement(TECH_BASE_ALL)
+                    .setIntroLevel(false)
+                    .setUnofficial(false)
+                    .setTechRating(RATING_C)
+                    .setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+                    .setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+                    .setApproximate(false, false, false, false, false)
+                    .setStaticTechLevel(SimpleTechLevel.ADVANCED), "165, IO"));
+
         
         //TODO:
         //Fuel-Air Mutators (See IO 165)
@@ -3232,6 +3279,17 @@ public class AmmoType extends EquipmentType {
                 .setClanAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
                 .setClanApproximate(false,false,false,false,false)
                 .setStaticTechLevel(SimpleTechLevel.ADVANCED),"355,TO"));
+
+        munitions.add(new MunitionMutator("Fuel-Air", 1, M_FUEL_AIR,
+                new TechAdvancement(TECH_BASE_ALL)
+                    .setIntroLevel(false)
+                    .setUnofficial(false)
+                    .setTechRating(RATING_C)
+                    .setAvailability(RATING_E, RATING_F, RATING_E, RATING_E)
+                    .setAdvancement(DATE_PS, DATE_PS, DATE_NONE, DATE_NONE, DATE_NONE)
+                    .setApproximate(false, false, false, false, false)
+                    .setStaticTechLevel(SimpleTechLevel.ADVANCED), "165, IO"));
+
         //TODO:
         //Fuel-Air Mutators (See IO 165)
 
@@ -15601,6 +15659,8 @@ public class AmmoType extends EquipmentType {
 
             // copy base ammoType
             munition.ammoType = base.ammoType;
+            // copy base flags
+            munition.flags = base.flags;
             // check for cost
             double cost = base.cost;
             double bv = base.bv;
@@ -15721,6 +15781,19 @@ public class AmmoType extends EquipmentType {
             if (munition.getMunitionType() == AmmoType.M_VIBRABOMB_IV) {
                 cost *= 2;
             }
+            if (munition.getMunitionType() == AmmoType.M_FUEL_AIR) {
+                cost *= 3;
+                switch (munition.getAmmoType()) {
+                    case AmmoType.T_LONG_TOM:
+                    case AmmoType.T_LONG_TOM_CANNON:
+                    case AmmoType.T_SNIPER:
+                    case AmmoType.T_SNIPER_CANNON:
+                    case AmmoType.T_THUMPER:
+                    case AmmoType.T_THUMPER_CANNON:
+                        bv *= 1.4;
+                    munition.flags.or(F_FAE);
+                }
+            }
 
             // This is just a hack to make it expensive.
             // We don't actually have a price for this.
@@ -15801,7 +15874,6 @@ public class AmmoType extends EquipmentType {
             munition.damagePerShot = base.damagePerShot;
             munition.rackSize = base.rackSize;
             munition.ammoType = base.ammoType;
-            munition.flags = base.flags;
             munition.hittable = base.hittable;
             munition.explosive = base.explosive;
             munition.toHitModifier = base.toHitModifier;
