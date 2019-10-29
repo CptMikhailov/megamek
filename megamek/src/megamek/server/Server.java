@@ -36482,10 +36482,20 @@ public class Server implements Runnable {
         if ((bldg != null)
             && !(flak && (((altitude > hex.terrainLevel(Terrains.BLDG_ELEV)) || (altitude > hex
                 .terrainLevel(Terrains.BRIDGE_ELEV)))))) {
+            double dmgMultiplier = 1.0;
             bldgAbsorbs = bldg.getAbsorbtion(coords);
             if (!((ammo != null) && (ammo.getMunitionType() == AmmoType.M_FLECHETTE))) {
                 // damage the building
-                Vector<Report> buildingReport = damageBuilding(bldg, damage,
+                // check first for fuel-air munitions
+                if (ammo.getMunitionType() == AmmoType.M_FUEL_AIR) {
+                    if ((bldg.getBldgClass() == Building.FORTRESS) || (bldg.getArmor(coords) > 0)) {
+                        dmgMultiplier = 0.5;
+                    }
+                    else if (bldg.getType() == Building.LIGHT) {
+                        dmgMultiplier = 1.5;
+                    }
+                }
+                Vector<Report> buildingReport = damageBuilding(bldg, (int) Math.round(damage * dmgMultiplier),
                                                                coords);
                 for (Report report : buildingReport) {
                     report.subject = subjectId;
@@ -36607,6 +36617,13 @@ public class Server implements Runnable {
                         && (entity instanceof Infantry)
                         && !(entity instanceof BattleArmor)) {
                         hits *= 2;
+                    }
+                } else if (ammo.getMunitionType() == AmmoType.M_FUEL_AIR) {
+                    // Infantry and Battle Armor take double damage
+                    if (entity instanceof Infantry) {
+                        hits *= 2;
+                    } else if (entity.getBARRating(1) < 10) {
+                        hits *= 1.5;
                     }
                 } else if (ammo.getMunitionType() == AmmoType.M_FLECHETTE) {
 
@@ -36836,6 +36853,12 @@ public class Server implements Runnable {
                     damage = 1;
                     falloff = 1;
             }
+        } else if (ammo.getMunitionType() == AmmoType.M_FUEL_AIR) {
+            switch (ammo.getAmmoType()) {
+                case AmmoType.T_LONG_TOM:
+                    damage = 30;
+                break;
+            }
         } else
             // if this was a mine clearance, then it only affects the hex hit
             if (mineClear) {
@@ -36885,6 +36908,53 @@ public class Server implements Runnable {
                         asfFlak, alreadyHit, false);
             }
             attackSource = centre; // all splash comes from ground zero
+        }
+    }
+
+    public void deliverFuelAirExplosive(Coords centre, AmmoType type, int subjectId,
+            Entity killer, Vector<Report> vPhaseReport) {
+        deliverFuelAirExplosive(centre, type, subjectId, killer, vPhaseReport, false);
+    }
+
+    public void deliverFuelAirExplosive(Coords centre, AmmoType type, int subjectId,
+            Entity killer, Vector<Report> vPhaseReport, boolean isBomb) {
+        int useType = type.getType(); 
+        int range, damage;
+        Vector<Integer> alreadyHit = new Vector<Integer>();
+        if (isBomb) {
+            useType = (BombType)type.getType() == BombType.B_SFAE ? AmmoType.T_SNIPER : AmmoType.T_LONG_TOM;
+        }
+        switch (useType) {
+            case AmmoType.T_LONG_TOM:
+            case AmmoType.T_LONG_TOM_CANNON:
+                damage = 30;
+                break;
+            case AmmoType.T_SNIPER:
+            case AmmoType.T_SNIPER_CANNON:
+            case AmmoType.T_ARROW_IV:
+                damage = 20;
+                break;
+            case AmmoType.T_THUMPER:
+            case AmmoType.T_THUMPER_CANNON:
+                damage = 10;
+                break;
+        }
+        range = damage / 10 + 1;
+        for(int ring = 0; damage > 0; ring++, damage -= 10) {
+            ArrayList<Coords> hexes = Compute.coordsAtRange(centre, ring);
+            for (Coords c : hexes) {
+                alreadyHit = artilleryDamageHex(c, centre, damage, type,
+                        subjectId, killer, null, false, 0, vPhaseReport, false,
+                        alreadyHit, false);
+            }
+        }
+        if ((useType != AmmoType.T_THUMPER) || (useType != AmmoType.T_THUMPER_CANNON)) {
+            ArrayList<Coords> hexes = Compute.coordsAtRange(centre, range);
+            for (Coords c : hexes) {
+                alreadyHit = artilleryDamageHex(c, centre, 5, ammo,
+                        subjectId, killer, null, false, 0, vPhaseReport, false,
+                        alreadyHit, false);
+            }
         }
     }
 
