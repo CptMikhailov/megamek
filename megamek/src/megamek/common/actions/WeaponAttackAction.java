@@ -1708,10 +1708,17 @@ public class WeaponAttackAction extends AbstractAttackAction implements Serializ
                                 if (bAType.getAmmoType() != AmmoType.T_ARROW_IV) {
                                     return Messages.getString("WeaponAttackAction.OnlyArrowArty");
                                 }
+                                // Can't fire Fuel-Air munitions while airborne
+                                if (bAType.getMunitionType() == AmmoType.M_FUEL_AIR) {
+                                    return Messages.getString("WeaponAttackAction.NoAeroFAE");
+                                }
                             }
                         } else if (wtype.getAmmoType() != AmmoType.T_ARROW_IV) {
                             //For Fighters, LAMs, Small Craft and VTOLs
                             return Messages.getString("WeaponAttackAction.OnlyArrowArty");
+                        } else if (atype.getMunitionType() == AmmoType.M_FUEL_AIR) {
+                            // Can't fire Fuel-Air munitions while airborne
+                            return Messages.getString("WeaponAttackAction.NoAeroFAE");
                         }
                     }
                 }
